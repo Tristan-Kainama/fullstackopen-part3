@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let persons = [
     { 
       "id": "1",
@@ -50,6 +52,49 @@ app.get('/info', (request, response) => {
     `
 
     response.send(info)
+})
+
+const generateId = () => {
+    let randomId = Math.floor(Math.random() * 10000);
+    const same = persons.find(person => person.id === randomId)
+    while (same) {
+        randomId = Math.floor(Math.random() * 10000);
+    }
+    return randomId
+}
+
+app.post('/api/persons', (request, response) => {
+    const body = request.body
+
+    if (!body.name) {
+        return response.status(400).json({
+            error: 'name missing'
+        })
+    }
+
+    if (!body.number) {
+        return response.status(400).json({
+            error: 'number missing'
+        })
+    }
+
+    const sameName = persons.find(person => person.name === body.name)
+
+    if (sameName) {
+        return response.status(400).json({
+            error: "can't add new number with same name"
+        })
+    }
+
+    const person = {
+        name: body.name,
+        number: body.number,
+        id: generateId()
+    }
+
+    persons.concat(person)
+
+    response.json(person)
 })
 
 app.delete('/api/persons/:id', (request, response) => {
