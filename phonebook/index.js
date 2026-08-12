@@ -55,16 +55,18 @@ app.get('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-// app.get('/info', (request, response) => {
-//     const count = Person.estimatedDocumentCount()
+app.get('/info', (request, response, next) => {
+    Person.estimatedDocumentCount()
+        .then(count => {
+            const info = `
+                <p>Phonebook has info for ${count} people</p>
+                <p>${new Date()}</p>
+            `
 
-//     const info = `
-//         <p>Phonebook has info for ${count} people</p>
-//         <p>${new Date()}</p>
-//     `
-
-//     response.send(info)
-// })
+            response.send(info)
+        })
+        .catch(error => next(error))
+})
 
 // const generateId = () => {
 //     let randomId = Math.floor(Math.random() * 10000);
@@ -75,7 +77,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 //     return randomId
 // }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
 
     if (!body.name) {
@@ -90,14 +92,27 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    const person = new Person({
-        name: body.name,
-        number: body.number
-    })
+    Person.findOne({ name: body.name })
+        .then(existingPerson => {
+            if (existingPerson) {
+                return Person.findByIdAndUpdate(
+                    existingPerson._id,
+                    { name: body.name, number: body.number },
+                    { new: true, runValidators: true, context: 'query' }
+                )
+            }
 
-    person.save().then(savedPerson => {
-        response.json(savedPerson)
-    })
+            const person = new Person({
+                name: body.name,
+                number: body.number
+            })
+
+            return person.save()
+        })
+        .then(savedPerson => {
+            response.json(savedPerson)
+        })
+        .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
@@ -108,7 +123,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.put('api/persons/:id', (request, response, next) => {
+app.put('/api/persons/:id', (request, response, next) => {
     const {name, number} = request.body
     
     Person.findById(request.params.id)
