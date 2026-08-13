@@ -157,12 +157,8 @@ const App = () => {
             setMessage(`Changed number of ${personObject.name}`)
             setIsError(false)
           })
-          .catch(() => {
-            const newPersons = persons.filter(person => person.name !== personObject.name)
-
-            setPersons(newPersons)
-            setFilteredPersons(newPersons.filter(person => person.name.toLowerCase().includes(search.toLowerCase())))
-            setMessage(`Information of ${personToDelete.name} has already been removed from the server`)
+          .catch((error) => {
+            setMessage(error.message)
             setIsError(true)
           })
       }
@@ -180,12 +176,8 @@ const App = () => {
           setMessage(`Added ${personObject.name}`)
           setIsError(false)
         })
-        .catch(() => {
-          const newPersons = persons.filter(person => person.name !== personObject.name)
-
-          setPersons(newPersons)
-          setFilteredPersons(newPersons.filter(person => person.name.toLowerCase().includes(search.toLowerCase())))
-          setMessage(`Information of ${personToDelete.name} has already been removed from the server`)
+        .catch((error) => {
+          setMessage(error.message)
           setIsError(true)
         })
     }
